@@ -55,16 +55,25 @@ if [ "$WERCKER_AWS_CLOUDFORMATION_ACTION" == "create-stack" ]; then
 
   STACKSTATUS="CREATE_IN_PROGRESS"
 
-  while [ "$STACKSTATUS" == "CREATE_IN_PROGRESS" ]; do
-    STACKLIST=$(aws --region $WERCKER_AWS_CLOUDFORMATION_REGION cloudformation list-stacks)
-    STACKSTATUS=$(echo "$STACKLIST" | python -c 'import json,sys,os;obj=json.load(sys.stdin);ourstacks=[s["StackStatus"] for s in obj["StackSummaries"] if s["StackName"] == os.environ.get("WERCKER_AWS_CLOUDFORMATION_STACK")];print ourstacks[0]')
-    echo $STACKSTATUS
-    if [ "$STACKSTATUS" == "CREATE_COMPLETE" ]; then
-      return 0
-    elif [ "$STACKSTATUS" == "CREATE_FAILED" ]; then
-      return 1
-    fi
-    info "Waiting for launch, checking again in 10 seconds..."
-    sleep 10
-  done
+  if [ "$WERCKER_AWS_CLOUDFORMATION_WAIT" == "true" ]; then
+    while [ "$STACKSTATUS" == "CREATE_IN_PROGRESS" ]; do
+      STACKLIST=$(aws --region $WERCKER_AWS_CLOUDFORMATION_REGION cloudformation list-stacks)
+      STACKSTATUS=$(echo "$STACKLIST" | python -c 'import json,sys,os;obj=json.load(sys.stdin);ourstacks=[s["StackStatus"] for s in obj["StackSummaries"] if s["StackName"] == os.environ.get("WERCKER_AWS_CLOUDFORMATION_STACK")];print ourstacks[0]')
+      echo $STACKSTATUS
+      if [ "$STACKSTATUS" == "CREATE_COMPLETE" ]; then
+        return 0
+      elif [ "$STACKSTATUS" == "CREATE_FAILED" ]; then
+        return 1
+      fi
+      info "Waiting for launch, checking again in 10 seconds..."
+      sleep 10
+    done
+  fi
+fi
+
+if [ "$WERCKER_AWS_CLOUDFORMATION_ACTION" == "delete-stack" ]; then
+  echo aws --region $WERCKER_AWS_CLOUDFORMATION_REGION cloudformation delete-stack \
+    --stack-name "$WERCKER_AWS_CLOUDFORMATION_STACK"
+  aws --region $WERCKER_AWS_CLOUDFORMATION_REGION cloudformation delete-stack \
+      --stack-name "$WERCKER_AWS_CLOUDFORMATION_STACK"
 fi
