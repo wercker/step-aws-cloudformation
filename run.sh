@@ -1,3 +1,4 @@
+#!/bin/bash
 
 if [ ! -n "$AWS_ACCESS_KEY_ID" ]; then
   if [ ! -n "$WERCKER_AWS_CLOUDFORMATION_AWS_ACCESS_KEY_ID" ]; then
@@ -59,25 +60,24 @@ else
 fi
 
 if [ "$WERCKER_AWS_CLOUDFORMATION_ACTION" == "create-stack" ]; then
-  echo aws --region $WERCKER_AWS_CLOUDFORMATION_REGION cloudformation create-stack \
+  echo aws --region "$WERCKER_AWS_CLOUDFORMATION_REGION" cloudformation create-stack \
     --stack-name "$WERCKER_AWS_CLOUDFORMATION_STACK" \
     $WERCKER_AWS_CLOUDFORMATION_TEMPLATE_ARG \
     --parameters $WERCKER_AWS_CLOUDFORMATION_PARAMETERS \
     $WERCKER_AWS_CLOUDFORMATION_CAPABILITY_ARG
-  aws --region $WERCKER_AWS_CLOUDFORMATION_REGION cloudformation create-stack \
+  aws --region "$WERCKER_AWS_CLOUDFORMATION_REGION" cloudformation create-stack \
     --stack-name "$WERCKER_AWS_CLOUDFORMATION_STACK" \
     $WERCKER_AWS_CLOUDFORMATION_TEMPLATE_ARG \
     --parameters $WERCKER_AWS_CLOUDFORMATION_PARAMETERS \
     $WERCKER_AWS_CLOUDFORMATION_CAPABILITY_ARG
-
 
   STACKSTATUS="CREATE_IN_PROGRESS"
 
   if [ "$WERCKER_AWS_CLOUDFORMATION_WAIT" == "true" ]; then
     while [ "$STACKSTATUS" == "CREATE_IN_PROGRESS" ]; do
-      STACKLIST=$(aws --region $WERCKER_AWS_CLOUDFORMATION_REGION cloudformation list-stacks)
+      STACKLIST=$(aws --region "$WERCKER_AWS_CLOUDFORMATION_REGION" cloudformation list-stacks)
       STACKSTATUS=$(echo "$STACKLIST" | python -c 'import json,sys,os;obj=json.load(sys.stdin);ourstacks=[s["StackStatus"] for s in obj["StackSummaries"] if s["StackName"] == os.environ.get("WERCKER_AWS_CLOUDFORMATION_STACK")];print ourstacks[0]')
-      echo $STACKSTATUS
+      echo "$STACKSTATUS"
       if [ "$STACKSTATUS" == "CREATE_COMPLETE" ]; then
         return 0
       elif [ "$STACKSTATUS" == "CREATE_FAILED" ]; then
@@ -90,9 +90,8 @@ if [ "$WERCKER_AWS_CLOUDFORMATION_ACTION" == "create-stack" ]; then
 fi
 
 if [ "$WERCKER_AWS_CLOUDFORMATION_ACTION" == "delete-stack" ]; then
-  echo aws --region $WERCKER_AWS_CLOUDFORMATION_REGION cloudformation delete-stack \
+  echo aws --region "$WERCKER_AWS_CLOUDFORMATION_REGION" cloudformation delete-stack \
     --stack-name "$WERCKER_AWS_CLOUDFORMATION_STACK"
-  aws --region $WERCKER_AWS_CLOUDFORMATION_REGION cloudformation delete-stack \
+  aws --region "$WERCKER_AWS_CLOUDFORMATION_REGION" cloudformation delete-stack \
       --stack-name "$WERCKER_AWS_CLOUDFORMATION_STACK"
 fi
-
