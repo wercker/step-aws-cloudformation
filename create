@@ -1,0 +1,15 @@
+create-stack
+--stack-name <value>
+[--template-body <value>]
+[--template-url <value>]
+[--parameters <value>]
+[--disable-rollback | --no-disable-rollback]
+[--timeout-in-minutes <value>]
+[--notification-arns <value>]
+[--capabilities <value>]
+[--on-failure <value>]
+[--stack-policy-body <value>]
+[--stack-policy-url <value>]
+[--tags <value>]
+[--cli-input-json <value>]
+[--generate-cli-skeleton]
