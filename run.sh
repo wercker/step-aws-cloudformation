@@ -59,28 +59,29 @@ else
   declare -x WERCKER_AWS_CLOUDFORMATION_CAPABILITY_ARG=""
 fi
 
-if [ "$WERCKER_AWS_CLOUDFORMATION_ACTION" == "create-stack" ]; then
-  echo aws --region "$WERCKER_AWS_CLOUDFORMATION_REGION" cloudformation create-stack \
+# Create / Update Stack
+if [[ "$WERCKER_AWS_CLOUDFORMATION_ACTION" == "create-stack" || "$WERCKER_AWS_CLOUDFORMATION_ACTION" == "update-stack" ]]; then
+  echo aws --region "$WERCKER_AWS_CLOUDFORMATION_REGION" cloudformation $WERCKER_AWS_CLOUDFORMATION_ACTION \
     --stack-name "$WERCKER_AWS_CLOUDFORMATION_STACK" \
     $WERCKER_AWS_CLOUDFORMATION_TEMPLATE_ARG \
     --parameters $WERCKER_AWS_CLOUDFORMATION_PARAMETERS \
     $WERCKER_AWS_CLOUDFORMATION_CAPABILITY_ARG
-  aws --region "$WERCKER_AWS_CLOUDFORMATION_REGION" cloudformation create-stack \
+  aws --region "$WERCKER_AWS_CLOUDFORMATION_REGION" cloudformation $WERCKER_AWS_CLOUDFORMATION_ACTION \
     --stack-name "$WERCKER_AWS_CLOUDFORMATION_STACK" \
     $WERCKER_AWS_CLOUDFORMATION_TEMPLATE_ARG \
     --parameters $WERCKER_AWS_CLOUDFORMATION_PARAMETERS \
     $WERCKER_AWS_CLOUDFORMATION_CAPABILITY_ARG
 
-  STACKSTATUS="CREATE_IN_PROGRESS"
+  STACKSTATUS="PROGRESS"
 
   if [ "$WERCKER_AWS_CLOUDFORMATION_WAIT" == "true" ]; then
-    while [ "$STACKSTATUS" == "CREATE_IN_PROGRESS" ]; do
+    while [ "$STACKSTATUS" == *PROGRESS ]; do
       STACKLIST=$(aws --region "$WERCKER_AWS_CLOUDFORMATION_REGION" cloudformation list-stacks)
       STACKSTATUS=$(echo "$STACKLIST" | python -c 'import json,sys,os;obj=json.load(sys.stdin);ourstacks=[s["StackStatus"] for s in obj["StackSummaries"] if s["StackName"] == os.environ.get("WERCKER_AWS_CLOUDFORMATION_STACK")];print ourstacks[0]')
       echo "$STACKSTATUS"
-      if [ "$STACKSTATUS" == "CREATE_COMPLETE" ]; then
+      if [ "$STACKSTATUS" == *COMPLETE ]; then
         return 0
-      elif [ "$STACKSTATUS" == "CREATE_FAILED" ]; then
+      elif [ "$STACKSTATUS" == *FAILED ]; then
         return 1
       fi
       info "Waiting for launch, checking again in 10 seconds..."
@@ -89,6 +90,7 @@ if [ "$WERCKER_AWS_CLOUDFORMATION_ACTION" == "create-stack" ]; then
   fi
 fi
 
+# Delete Stack
 if [ "$WERCKER_AWS_CLOUDFORMATION_ACTION" == "delete-stack" ]; then
   echo aws --region "$WERCKER_AWS_CLOUDFORMATION_REGION" cloudformation delete-stack \
     --stack-name "$WERCKER_AWS_CLOUDFORMATION_STACK"
