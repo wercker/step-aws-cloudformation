@@ -1,0 +1,46 @@
+name: aws-cloudformation
+version: 1.0.0
+summary: launches a stack on cloudformation
+tags:
+  - aws
+properties:
+- name: action
+  type: string
+  required: false
+  default: "create-stack"
+- name: wait
+  type: string
+  required: true
+  default: "true"
+- name: aws_access_key_id
+  type: string
+  required: false
+  default: ""
+- name: aws_secret_access_key
+  type: string
+  required: false
+  default: ""
+- name: region
+  type: string
+  required: false
+  default: "us-east-1"
+- name: stack
+  type: string
+  required: false
+  default: "wercker-$WERCKER_BUILD_ID"
+- name: template_body:
+  type: string
+  required: false
+  default: ""
+- name: template_url
+  type: string
+  required: false
+  default: ""
+- name: parameters
+  type: string
+  required: false
+  default: ""
+- name: capabilities
+  type: string
+  required: false
+  default: ""
