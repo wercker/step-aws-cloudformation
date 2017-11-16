@@ -28,7 +28,7 @@ properties:
   type: string
   required: false
   default: "wercker-$WERCKER_BUILD_ID"
-- name: template_body:
+- name: template_body
   type: string
   required: false
   default: ""
